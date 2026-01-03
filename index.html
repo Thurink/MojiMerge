@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emoji Merge — Ji (v13)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Emoji Merge — Ji</h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" type="button" data-tab="game" role="tab" aria-selected="true">Game</button>
+      <button class="tab" type="button" data-tab="stats" role="tab" aria-selected="false">Stats</button>
+      <button class="tab" type="button" data-tab="prestige" role="tab" aria-selected="false">Prestige Tree</button>
+      <button class="tab" type="button" data-tab="settings" role="tab" aria-selected="false">Settings</button>
+    </nav>
+    <div class="statsbar">
+      <div><strong>Ji:</strong> <span id="ji">0</span></div>
+      <div><strong>Ji/sec:</strong> <span id="jips">0</span></div>
+      <div class="prestige"><strong>Prestige:</strong> <span id="prestigeLevel">0</span></div>
+    </div>
+    <div id="message" role="status" aria-live="polite"></div>
+  </header>
+
+  <main>
+    <!-- GAME TAB -->
+    <section id="tab-game" class="tabpanel active" role="tabpanel" aria-labelledby="tab-game">
+      <div class="tabwrap">
+        <div id="prestigeReadyBanner" class="banner top" hidden>✨ Prestige Ready — you have a max‑tier emoji. Go to the <strong>Prestige Tree</strong> tab!</div>
+        <div class="layout">
+          <section class="panel">
+            <h2>Board</h2>
+            <div id="board" class="board" aria-label="Emoji board"></div>
+            <div class="note">Locked tiles show a 🔒. Unlock more using <strong>Upgrades</strong>.</div>
+          </section>
+
+          <section class="panel">
+            <h2>Shop</h2>
+            <div id="shop" class="shop"></div>
+            <div class="note">Buy tiers from <strong>T<span id="minTierLabel">1</span></strong> up to <strong>T<span id="maxTierLabel">1</span></strong> (cap <strong>T<span id="tierCap">10</span></strong>). Base prices: <code>100 × 2.5^(T−1)</code> and +4% inflation per purchase.</div>
+          </section>
+
+          <section class="panel">
+            <h2>Upgrades</h2>
+            <div id="upgradesList" class="upgrades"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS TAB -->
+    <section id="tab-stats" class="tabpanel" role="tabpanel" aria-labelledby="tab-stats">
+      <div class="tabwrap">
+        <div class="layout layout-single">
+          <section class="panel">
+            <h2>Statistics</h2>
+            <div class="stats-columns">
+              <div>
+                <h3>Current Prestige</h3>
+                <ul class="statlist">
+                  <li>Prestige Level: <span id="s_curPrestige">0</span></li>
+                  <li>Lifetime Ji: <span id="s_curLifeJi">0</span></li>
+                  <li id="freezeStatCur" hidden>Emojis Frozen: <span id="s_curFrozen">0</span></li>
+                  <li id="freezeStatCur2" hidden>Ji from Frozen: <span id="s_curFrozenJi">0</span></li>
+                  <li>Ji from Passive: <span id="s_curPassiveJi">0</span></li>
+                  <li>Merges: <span id="s_curMerges">0</span></li>
+                  <li>Tiles Unlocked: <span id="s_curTilesUnlocked">0</span></li>
+                  <li>Emojis Deleted: <span id="s_curDeleted">0</span></li>
+                  <li>Highest Tier Achieved: <span id="s_curHighestTier">0</span></li>
+                  <li>Ji Spent (Shop): <span id="s_curJiSpentShop">0</span></li>
+                  <li>Ji Spent (Upgrades): <span id="s_curJiSpentUpg">0</span></li>
+                  <li>Run Time: <span id="s_curRunTime">0s</span></li>
+                </ul>
+                <h4>Purchases per Tier</h4>
+                <div id="s_curPurchases" class="tiergrid"></div>
+              </div>
+              <div>
+                <h3>All Time</h3>
+                <ul class="statlist">
+                  <li>Lifetime Ji: <span id="s_allLifeJi">0</span></li>
+                  <li id="freezeStatAll" hidden>Emojis Frozen: <span id="s_allFrozen">0</span></li>
+                  <li id="freezeStatAll2" hidden>Ji from Frozen: <span id="s_allFrozenJi">0</span></li>
+                  <li>Ji from Passive: <span id="s_allPassiveJi">0</span></li>
+                  <li>Merges: <span id="s_allMerges">0</span></li>
+                  <li>Tiles Unlocked: <span id="s_allTilesUnlocked">0</span></li>
+                  <li>Emojis Deleted: <span id="s_allDeleted">0</span></li>
+                  <li>Highest Tier Achieved: <span id="s_allHighestTier">0</span></li>
+                  <li>Ji Spent (Shop): <span id="s_allJiSpentShop">0</span></li>
+                  <li>Ji Spent (Upgrades): <span id="s_allJiSpentUpg">0</span></li>
+                  <li>Total Run Time: <span id="s_allRunTime">0s</span></li>
+                </ul>
+                <h4>Purchases per Tier</h4>
+                <div id="s_allPurchases" class="tiergrid"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRESTIGE TREE TAB -->
+    <section id="tab-prestige" class="tabpanel" role="tabpanel" aria-labelledby="tab-prestige">
+      <div class="tabwrap">
+        <div class="layout layout-single">
+          <section class="panel">
+            <div class="prestige-header">
+              <h2>Prestige</h2>
+              <button id="prestigeBtn" class="btn-primary big" title="Requires at least one max-tier emoji on the board">Prestige Now (+1 Moji+)</button>
+              <div class="counters">
+                <span class="pill">Moji+: <span id="mojiPlusCounter">0</span></span>
+                <span id="mojiPPpill" class="pill" hidden>Moji++: <span id="mojiPlusPlus">0</span></span>
+                <span class="pill">Est. Ji on Prestige: <span id="estPrestigeJi">0</span></span>
+              </div>
+            </div>
+            <p class="note">Prestige resets <strong>Ji</strong>, board, shop, and upgrades. Tier cap increases by <strong>+2</strong>. Board capacity grows by <strong>+2 tiles</strong> each prestige.</p>
+            <h3>Prestige Tree</h3>
+            <div id="prestigeTree" class="tree"></div>
+            <div id="mojiPPSection" class="panel" hidden>
+              <h3>Moji++ Upgrades</h3>
+              <p class="note">Earn <strong>Moji++</strong> at <strong>Prestige 50</strong> (every +3 levels), and at <strong>Prestige 100</strong> (every +2 levels).</p>
+              <div class="upgrades">
+                <div class="upgrade">
+                  <div>
+                    <div class="title">Base Tier Boost</div>
+                    <div class="desc">Increase base starting tier by +1 (no cap)</div>
+                    <div class="sub">Current level: <span id="mojiPPLevel">0</span></div>
+                  </div>
+                  <button id="mojiPPBtn" type="button">Upgrade (1 Moji++)</button>
+                </div>
+                <div id="autoSpawnUpgrade" class="upgrade" hidden>
+                  <div>
+                    <div class="title">Auto Spawn</div>
+                    <div class="desc">Auto‑spawn an emoji of the <strong>second‑highest buyable tier</strong> every <strong><span id="spawnIntervalLabel">30s</span></strong> if space.</div>
+                    <div class="sub">Status: <span id="autoSpawnStatus">Locked</span></div>
+                  </div>
+                  <button id="autoSpawnBtn" type="button">Unlock (1 Moji++)</button>
+                </div>
+                <div id="autoMergeUpgrade" class="upgrade" hidden>
+                  <div>
+                    <div class="title">Auto Merge</div>
+                    <div class="desc">Auto‑merge <strong>2 emojis</strong> every <strong><span id="mergeIntervalLabel">30s</span></strong> if possible (runs after Auto Spawn).</div>
+                    <div class="sub">Status: <span id="autoMergeStatus">Locked</span></div>
+                  </div>
+                  <button id="autoMergeBtn" type="button">Unlock (1 Moji++)</button>
+                </div>
+                <div id="spawnSpeedUpgrade" class="upgrade" hidden>
+                  <div>
+                    <div class="title">Auto Spawn Speed</div>
+                    <div class="desc">5 tiers • −5s to spawn timer per tier</div>
+                    <div class="sub">Level: <span id="spawnSpeedLevel">0/5</span></div>
+                  </div>
+                  <button id="spawnSpeedBtn" type="button">Upgrade (1 Moji++)</button>
+                </div>
+                <div id="mergeSpeedUpgrade" class="upgrade" hidden>
+                  <div>
+                    <div class="title">Auto Merge Speed</div>
+                    <div class="desc">5 tiers • −5s to merge timer per tier</div>
+                    <div class="sub">Level: <span id="mergeSpeedLevel">0/5</span></div>
+                  </div>
+                  <button id="mergeSpeedBtn" type="button">Upgrade (1 Moji++)</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section id="tab-settings" class="tabpanel" role="tabpanel" aria-labelledby="tab-settings">
+      <div class="tabwrap">
+        <div class="layout layout-single">
+          <section class="panel">
+            <h2>Settings</h2>
+            <div class="settings-grid">
+              <div class="setting">
+                <div>
+                  <strong>Scientific Notation</strong>
+                  <div class="sub">Display large numbers in scientific notation (e.g., 1.23e+6). Default is off.</div>
+                </div>
+                <label><input type="checkbox" id="sciToggle"> Enable</label>
+              </div>
+              <div id="freezeSetting" class="setting" hidden>
+                <div>
+                  <strong>Freeze Mechanic</strong>
+                  <div class="sub">Enable or disable the freeze/thaw mechanic (requires unlocking the Freezing upgrade).</div>
+                </div>
+                <label><input type="checkbox" id="freezeToggle"> Enabled</label>
+              </div>
+              <div id="emojiSetSetting" class="setting" hidden>
+                <div>
+                  <strong>Emoji Set</strong>
+                  <div class="sub">Available at Prestige ≥ 100. Choose which emoji set to use on the board.</div>
+                </div>
+                <div>
+                  <label><input type="radio" name="emojiSet" value="classic"> Classic</label>
+                  <label><input type="radio" name="emojiSet" value="animals"> Animals</label>
+                  <label><input type="radio" name="emojiSet" value="food"> Food</label>
+                </div>
+              </div>
+              <div class="setting">
+                <div>
+                  <strong>Export / Import Save</strong>
+                  <div class="sub">Export your save to a JSON file, or import a JSON to restore.</div>
+                </div>
+                <div class="io">
+                  <button id="exportBtn" type="button">Export JSON</button>
+                  <input id="importFile" type="file" accept="application/json" />
+                  <button id="importBtn" type="button">Import JSON</button>
+                </div>
+              </div>
+              <div class="setting">
+                <div>
+                  <strong>Full Reset</strong>
+                  <div class="sub">Reset <em>everything</em> — board, shop, upgrades, stats, and <strong>Prestige</strong>/<strong>Moji+</strong>/<strong>Moji++</strong>.</div>
+                </div>
+                <button id="fullResetBtn" class="danger" type="button">Full Reset</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <details>
+      <summary>How to play</summary>
+      <ul>
+        <li>Board capacity grows with <strong>Prestige</strong> and capacity upgrades. You can only unlock tiles up to your current <strong>capacity</strong>.</li>
+        <li>Tier base prices: <code>100 × 2.5^(T−1)</code>, and increase by <strong>+4%</strong> per purchase of that tier.</li>
+        <li>Shop tier upgrade cost: <strong>×2.02 per level</strong> (stacking). Buyable limit is <strong>cap − 2</strong>.</li>
+        <li><strong>Middle‑click</strong> an emoji to prompt deletion of that emoji (confirm to remove).</li>
+        <li id="freezeHowto" hidden><strong>Freeze mechanic</strong>: Every <strong><span id="freezeTimerLabel">30s</span></strong> (reduced by upgrades), one occupied tile may freeze. Frozen emojis cannot be moved, swapped, or merged. Double‑click a frozen emoji to thaw and gain Ji based on its tier and multipliers.</li>
+      </ul>
+    </details>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
