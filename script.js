@@ -149,7 +149,23 @@ function renderBoard(){ el.board.innerHTML=''; const gridCount = boardMaxCapacit
  for (let i=0;i<gridCount;i++){
   const cell = state.board[i]; const unlocked = i < state.unlockedCount; const d = document.createElement('div'); d.className = 'tile' + (unlocked? '' : ' locked') + ((cell && unlocked)? '' : ' empty') + (isFrozen(i)? ' frozen' : ''); d.setAttribute('role','button'); d.dataset.index = String(i);
   const stacks = stackCounts[i]||0; const ratio = Math.min(1, stacks/6); const hue = Math.round(120*ratio); d.style.boxShadow = stacks>0 ? `0 0 0 3px hsl(${hue} 80% 50% / 0.9)` : '';
-  if (cell && unlocked){ const em = document.createElement('div'); em.className='emoji'; em.textContent=getEmojiForTier(cell.tier); const tier=document.createElement('div'); tier.className='tier-label'; const isMax = cell.tier===maxTierCap(); tier.textContent=isMax?`T${cell.tier} • Max`:`T${cell.tier}`; if(isMax) tier.classList.add('max'); const pps=document.createElement('div'); pps.className='pps-label'; const eff=isFrozen(i)?0:Math.round((getPPS(cell.tier)*tileMultiplier(i)+tierInfusionBonusForTile(i))*passivePpsFactor()); pps.textContent=`${fmtJi(eff)} /s`; const sb=document.createElement('div'); sb.className='stack-badge'; sb.textContent=stacks>0 ? `×${Math.pow(2, stacks)} (${stacks})` : ''; d.appendChild(em); d.appendChild(tier); d.appendChild(pps); d.appendChild(sb); d.draggable=true; d.addEventListener('dragstart', dragStart); d.addEventListener('dragover', dragOver); d.addEventListener('drop', drop); d.addEventListener('auxclick', onTileAuxClick); }
+  if (cell && unlocked){ const em = document.createElement('div'); em.className='emoji'; em.textContent=getEmojiForTier(cell.tier); const tier=document.createElement('div'); tier.className='tier-label'; const isMax = cell.tier===maxTierCap(); tier.textContent=isMax?`T${cell.tier} • Max`:`T${cell.tier}`; if(isMax) tier.classList.add('max'); const pps=document.createElement('div'); pps.className='pps-label'; const eff=isFrozen(i)?0:Math.round((getPPS(cell.tier)*tileMultiplier(i)+tierInfusionBonusForTile(i))*passivePpsFactor()); pps.textContent=`${fmtJi(eff)} /s`; const sb=document.createElement('div'); sb.className='stack-badge'; sb.textContent=stacks>0 ? `×${Math.pow(2, stacks)} (${stacks})` : ''; d.appendChild(em); d.appendChild(tier); d.appendChild(pps); d.appendChild(sb); d.draggable=true; d.addEventListener('dragstart', dragStart); d.addEventListener('dragover', dragOver); d.addEventListener('drop', drop); d.addEventListener('auxclick', onTileAuxClick); 
+  
+d.appendChild(em);
+d.appendChild(tier);
+d.appendChild(pps);
+d.appendChild(sb);
+
+// existing handlers...
+d.draggable = true;
+d.addEventListener('dragstart', dragStart);
+d.addEventListener('dragover', dragOver);
+d.addEventListener('drop', drop);
+d.addEventListener('auxclick', onTileAuxClick);
+
+// NEW: thaw on double‑click
+d.addEventListener('dblclick', onTileDoubleClick);
+}
   d.addEventListener('click', onTileClick); el.board.appendChild(d);
  }
  el.prestigeReadyBanner.hidden = !canPrestige();
@@ -223,10 +239,10 @@ function mojiPPGrant(){ const lvl = state.prestigeLevel; if (lvl >= 100 && (lvl 
 function awardMojiPPIfEligible(){ const g = mojiPPGrant(); if (g>0){ state.mojiPlusPlus += g; message('Earned +1 Moji++ point!'); } }
 function canPrestige(){ return hasMaxTierEmoji(); }
 function maxTierBonusPerEmoji(){ const pt=state.prestigeTree||{}; const cap=maxTierCap(); const mult = (pt.maxTierBonusUnlocked?10:0) + (pt.maxTierBonus2Unlocked?20:0) + (pt.maxTierBonus3Unlocked?30:0); return cap * mult; }
-function estimatePrestigeJi(){ const capCount = Math.min(state.unlockedCount, boardMaxCapacity()); let maxTierCount=0; const cap=maxTierCap(); for(let i=0;i<capCount;i++){ const c=state.board[i]; if(c && c.tier===cap) maxTierCount++; } return 200 + maxTierCount * maxTierBonusPerEmoji(); }
+function estimatePrestigeJi(){ const capCount = Math.min(state.unlockedCount, boardMaxCapacity()); let maxTierCount=0; const cap=maxTierCap(); for(let i=0;i<capCount;i++){ const c=state.board[i]; if(c && c.tier===cap) maxTierCount++; } return STARTING_JI + maxTierCount * maxTierBonusPerEmoji(); }
 function prestige(){ if(!canPrestige()){ message('Prestige requires at least one max‑tier emoji on the board.'); return; }
   const capCount = Math.min(state.unlockedCount, boardMaxCapacity()); let maxTierCount=0; const cap=maxTierCap(); for(let i=0;i<capCount;i++){ const c=state.board[i]; if(c && c.tier===cap) maxTierCount++; }
-  const bonus = maxTierCount * maxTierBonusPerEmoji() + 200;
+  const bonus = maxTierCount * maxTierBonusPerEmoji();
   state.ji = STARTING_JI + bonus; state.prestigeLevel += 1; state.mojiPlus += 1; awardMojiPPIfEligible();
   state.board = Array(BOARD_ARRAY_SIZE).fill(null); state.unlockedCount = START_UNLOCKED; state.maxBuyTier = 1; state.tierPurchases = {}; frozenSet = new Set(); stackCounts=Array(BOARD_ARRAY_SIZE).fill(0);
   state.stats.current = { prestigeLevel: state.prestigeLevel, purchasesPerTier:{}, merges:0, emojisFrozen:0, lifetimeJi:0, jiFrozen:0, jiPassive:0, tilesUnlocked:0, emojisDeleted:0, highestTier:0, jiSpentShop:0, jiSpentUpg:0, runTimeSec:0 };
@@ -291,6 +307,33 @@ function onTileClick(e){ const idx=Number(e.currentTarget.dataset.index); const 
 function dragStart(e){ e.dataTransfer.setData('text/plain', e.currentTarget.dataset.index); }
 function dragOver(e){ e.preventDefault(); }
 function drop(e){ e.preventDefault(); const from=Number(e.dataTransfer.getData('text/plain')); const to=Number(e.currentTarget.dataset.index); if(from===to) return; if(to>=state.unlockedCount){ message('Target tile is locked.'); return; } if(isFrozen(from) || isFrozen(to)){ message('Frozen emojis cannot be moved or merged.'); return; } const a=state.board[from]; const b=state.board[to]; if(!a) return; const cap=maxTierCap(); if(a && b && a.tier===b.tier){ const nextTier=b.tier+1; if(nextTier>cap){ message(`Tier cap T${cap}. Prestige to raise it.`); return; } state.board[to]={ tier: nextTier }; updateHighestTier(nextTier); state.board[from]=null; addStatsMerge(); message(`Merged to Tier ${nextTier}!`); } else { state.board[to]=a; state.board[from]=b; message('Moved.'); } renderAll(); save(); }
+
+// Double‑click thaw
+function onTileDoubleClick(e) {
+  try {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const idx = Number(e.currentTarget.dataset.index);
+    if (!isFrozen(idx)) return;
+
+    // Unfreeze + award Ji
+    frozenSet.delete(idx);
+    const reward = thawReward(idx);
+    state.ji += reward;
+    addStatsFrozen(reward);
+
+    // Clean up selection state in case a first click selected something
+    selectedIndex = null;
+
+    message(`Thawed! +${fmtJi(reward)} Ji`);
+    renderAll();
+    save();
+  } catch (err) {
+    console.warn('dblclick handler error', err);
+  }
+}
+
 
 function onTileAuxClick(e){ try{ if (e.button !== 1) return; const idx = Number(e.currentTarget.dataset.index); const unlocked = idx < state.unlockedCount; const cell = state.board[idx]; if (!unlocked || !cell) return; if (isFrozen(idx)){ message('Frozen emojis cannot be deleted.'); return; } if (confirm('Delete this emoji? This cannot be undone.')){ state.board[idx] = null; addDeleted(); renderAll(); save(); } } catch(err){ console.warn('auxclick handler error', err); }
 }
