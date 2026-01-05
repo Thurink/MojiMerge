@@ -33,7 +33,7 @@
           <section class="panel">
             <h2>Board</h2>
             <div id="board" class="board" aria-label="Emoji board"></div>
-            <div class="note">Locked tiles show a 🔒. Unlock more using <strong>Upgrades</strong>.</div>
+            <div class="note">Frozen emojis show a ❄️ badge — click the badge or double‑click the tile to thaw.</div>
           </section>
 
           <section class="panel">
@@ -56,6 +56,21 @@
         <div class="layout layout-single">
           <section class="panel">
             <h2>Statistics</h2>
+
+            <div class="bonuses">
+              <h3>Bonuses</h3>
+              <ul class="statlist">
+                <li>Prestige Ji/sec Bonus: <span id="bonusPrestige">+0%</span></li>
+                <li id="bonusMojiPPRow" hidden>Moji++ Ji/sec Bonus: <span id="bonusMojiPP">+0%</span></li>
+                <li id="bonusGlobalRow" hidden>Global Ji/sec Boost: <span id="bonusGlobal">+0%</span></li>
+              </ul>
+            </div>
+
+            <div id="coresSection" class="cores" hidden>
+              <h3>Emoji Cores</h3>
+              <div id="coresGrid" class="tiergrid"></div>
+            </div>
+
             <div class="stats-columns">
               <div>
                 <h3>Current Prestige</h3>
@@ -107,7 +122,7 @@
           <section class="panel">
             <div class="prestige-header">
               <h2>Prestige</h2>
-              <button id="prestigeBtn" class="btn-primary big" title="Requires at least one max-tier emoji on the board">Prestige Now (+1 Moji+)</button>
+              <button id="prestigeBtn" class="btn-primary big" title="Requires at least one max-tier emoji on the board" hidden>Prestige Now (+1 Moji+)</button>
               <div class="counters">
                 <span class="pill">Moji+: <span id="mojiPlusCounter">0</span></span>
                 <span id="mojiPPpill" class="pill" hidden>Moji++: <span id="mojiPlusPlus">0</span></span>
@@ -119,7 +134,7 @@
             <div id="prestigeTree" class="tree"></div>
             <div id="mojiPPSection" class="panel" hidden>
               <h3>Moji++ Upgrades</h3>
-              <p class="note">Earn <strong>Moji++</strong> at <strong>Prestige 50</strong> (every +3 levels), and at <strong>Prestige 100</strong> (every +2 levels).</p>
+              <p class="note">Earn <strong>Moji++</strong> at <strong>Prestige 50</strong> every <strong>+3 levels</strong>, and at <strong>Prestige 100</strong> every <strong>+2 levels</strong>.</p>
               <div class="upgrades">
                 <div class="upgrade">
                   <div>
@@ -182,6 +197,19 @@
                 </div>
                 <label><input type="checkbox" id="sciToggle"> Enable</label>
               </div>
+          <div class="setting">
+            <div>
+              <strong>Theme</strong>
+              <div class="sub">Choose your preferred theme for the game interface.</div>
+            </div>
+            <label for="themeSelector">
+              <select id="themeSelector">
+                <option value="system">System Default</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+          </div>
               <div id="freezeSetting" class="setting" hidden>
                 <div>
                   <strong>Freeze Mechanic</strong>
@@ -218,6 +246,20 @@
                 </div>
                 <button id="fullResetBtn" class="danger" type="button">Full Reset</button>
               </div>
+              <div class="setting">
+                <div>
+                  <strong>Save</strong>
+                  <div class="sub">Manually save your progress to local storage.</div>
+                </div>
+                <button id="saveBtn" type="button">Save</button>
+              </div>
+              <div class="setting">
+                <div>
+                  <strong>Add 100M Ji</strong>
+                  <div class="sub">For testing: Instantly add 100,000,000 Ji to your total.</div>
+                </div>
+                <button id="addJiBtn" type="button">Add 100M Ji</button>
+              </div>
             </div>
           </section>
         </div>
@@ -233,7 +275,7 @@
         <li>Tier base prices: <code>100 × 2.5^(T−1)</code>, and increase by <strong>+4%</strong> per purchase of that tier.</li>
         <li>Shop tier upgrade cost: <strong>×2.02 per level</strong> (stacking). Buyable limit is <strong>cap − 2</strong>.</li>
         <li><strong>Middle‑click</strong> an emoji to prompt deletion of that emoji (confirm to remove).</li>
-        <li id="freezeHowto" hidden><strong>Freeze mechanic</strong>: Every <strong><span id="freezeTimerLabel">30s</span></strong> (reduced by upgrades), one occupied tile may freeze. Frozen emojis cannot be moved, swapped, or merged. Double‑click a frozen emoji to thaw and gain Ji based on its tier and multipliers.</li>
+        <li id="freezeHowto" hidden><strong>Freeze mechanic</strong>: Every <strong><span id="freezeTimerLabel">30s</span></strong> (reduced by upgrades), one occupied tile may freeze. Frozen emojis cannot be moved, swapped, merged, or deleted. Click the ❄️ badge or double‑click a frozen tile to thaw and gain Ji based on its tier and multipliers.</li>
       </ul>
     </details>
   </footer>
