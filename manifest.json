@@ -1,0 +1,11 @@
+{
+  "name": "Moji Merge \u2013 Petmoji Demo",
+  "version": "0.1.1",
+  "released": "2026-01-13",
+  "changes": [
+    "Moved Epic/Legendary unlock notes to end of Petmoji list.",
+    "Added Cheats: Get Petmoji Shard (eligible by current prestige).",
+    "Cheats password changed to 'cheater67'.",
+    "Displayed special effect descriptions on Rare+ Petmoji cards."
+  ]
+}
